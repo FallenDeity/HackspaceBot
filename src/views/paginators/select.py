@@ -3,9 +3,16 @@ from __future__ import annotations
 from typing import Generic, List, Optional, TypeVar, Union
 
 import discord
+
 from src.views.paginators import BasePaginator, FileLike, PageLike
 
-__all__: tuple[str, ...] = ("SelectMenuBasedPaginator", "EmbedSelectPaginator", "FileSelectPaginator", "StringSelectPaginator", "PageEntry")
+__all__: tuple[str, ...] = (
+    "SelectMenuBasedPaginator",
+    "EmbedSelectPaginator",
+    "FileSelectPaginator",
+    "StringSelectPaginator",
+    "PageEntry",
+)
 
 
 T = TypeVar("T", bound=PageLike)

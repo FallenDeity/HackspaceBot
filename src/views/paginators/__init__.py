@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Generic, List, TypeVar, Union
 
 import discord
 from discord.ext import commands
+
 from src.views import BaseView
 
 if TYPE_CHECKING:
@@ -29,14 +30,20 @@ class BasePaginator(Generic[T], BaseView):
     current_page: int
 
     def __init__(
-        self, user: Union[discord.User, discord.Member], pages: List[T], *, attachments: List[discord.File] | None = None
+        self,
+        user: Union[discord.User, discord.Member],
+        pages: List[T],
+        *,
+        attachments: List[discord.File] | None = None,
     ) -> None:
         super().__init__(user=user, timeout=180)
         self.pages = pages
         self.current_page: int = 0
         self.attachments = attachments or []
 
-    async def _send(self, ctx_or_inter: commands.Context[HackspaceBot] | discord.Interaction, *args: Any, **kwargs: Any) -> None:
+    async def _send(
+        self, ctx_or_inter: commands.Context[HackspaceBot] | discord.Interaction, *args: Any, **kwargs: Any
+    ) -> None:
         if isinstance(ctx_or_inter, commands.Context):
             if self.message is None:
                 self.message = await ctx_or_inter.send(*args, **kwargs)

@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import datetime
 import logging
-import os
+import pathlib
 import traceback
 import typing
-import pathlib
 
 import aiohttp
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
+
+from src.utils.env import ENV
 from src.utils.help import CustomHelpCommand
 from src.utils.tree import SlashCommandTree
 
@@ -24,7 +24,14 @@ class HackspaceBot(commands.Bot):
     _uptime: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
 
     def __init__(self, prefix: str, ext_dir: str | pathlib.Path, *args: typing.Any, **kwargs: typing.Any) -> None:
-        super().__init__(*args, **kwargs, command_prefix=commands.when_mentioned_or(prefix), intents=discord.Intents.all(), help_command=CustomHelpCommand(with_app_command=True), tree_cls=SlashCommandTree)
+        super().__init__(
+            *args,
+            **kwargs,
+            command_prefix=commands.when_mentioned_or(prefix),
+            intents=discord.Intents.all(),
+            help_command=CustomHelpCommand(with_app_command=True),
+            tree_cls=SlashCommandTree,
+        )
         self.ext_dir = pathlib.Path(ext_dir)
         self.synced = True
 
@@ -59,9 +66,8 @@ class HackspaceBot(commands.Bot):
         await self.client.close()
 
     def run(self, *args: typing.Any, **kwargs: typing.Any) -> None:
-        load_dotenv()
         try:
-            super().run(str(os.getenv("DISCORD_BOT_TOKEN")), *args, **kwargs)
+            super().run(ENV.DISCORD_TOKEN, *args, **kwargs)
         except (discord.LoginFailure, KeyboardInterrupt):
             logger.info("Exiting...")
             exit()

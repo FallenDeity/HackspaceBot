@@ -14,12 +14,12 @@ class Utility(BaseCog):
 
     async def cog_load(self) -> None:
         help_command = self.bot.help_command
-        help_command.cog = self
+        help_command.cog = self  # type: ignore
 
     async def cog_unload(self) -> None:
         help_command = self.bot.help_command
-        help_command.cog = None
-    
+        help_command.cog = None  # type: ignore
+
     @app_commands.command(name="ping", description="Check the bot's latency.")
     async def ping(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import logging
+
 import discord
 from discord import app_commands
 from discord.app_commands.errors import AppCommandError
 from discord.interactions import Interaction
-
 
 __all__: tuple[str, ...] = ("SlashCommandTree",)
 

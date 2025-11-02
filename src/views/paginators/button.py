@@ -4,13 +4,19 @@ from typing import TYPE_CHECKING, Generic, List, TypeVar, Union
 
 import discord
 from discord import PartialEmoji
+
 from src.views.paginators import BasePaginator, FileLike, PageLike
 
 if TYPE_CHECKING:
     from src.views import BaseView
 
 
-__all__: tuple[str, ...] = ("ButtonBasedPaginator", "EmbedButtonPaginator", "FileButtonPaginator", "StringButtonPaginator")
+__all__: tuple[str, ...] = (
+    "ButtonBasedPaginator",
+    "EmbedButtonPaginator",
+    "FileButtonPaginator",
+    "StringButtonPaginator",
+)
 
 
 T = TypeVar("T", bound=PageLike)

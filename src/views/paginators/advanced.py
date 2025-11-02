@@ -4,10 +4,17 @@ from typing import Generic, List, Optional, TypeVar, Union
 
 import discord
 from discord import File, Member, User
+
 from src.views.paginators import FileLike, PageLike
 from src.views.paginators.button import ButtonBasedPaginator
 
-__all__: tuple[str, ...] = ("CategoryBasedPaginator", "EmbedCategoryPaginator", "FileCategoryPaginator", "StringCategoryPaginator", "CategoryEntry")
+__all__: tuple[str, ...] = (
+    "CategoryBasedPaginator",
+    "EmbedCategoryPaginator",
+    "FileCategoryPaginator",
+    "StringCategoryPaginator",
+    "CategoryEntry",
+)
 
 T = TypeVar("T", bound=PageLike)
 
@@ -70,7 +77,7 @@ class CategoryPaginatorSelect(discord.ui.Select[CategoryBasedPaginator[PageLike]
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return await self.view.interaction_check(interaction)
-    
+
     @property
     def view(self) -> CategoryBasedPaginator[PageLike]:
         return super().view  # type: ignore

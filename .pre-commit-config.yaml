@@ -37,7 +37,7 @@ repos:
       - id: ruff
         name: ruff
         pass_filenames: false
-        entry: uv run ruff .
+        entry: uv run ruff check .
         language: python
 
       - id: pyright

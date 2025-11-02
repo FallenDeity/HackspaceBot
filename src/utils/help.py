@@ -5,16 +5,17 @@ import difflib
 import functools
 import inspect
 import re
-from typing import Any, Callable, Dict, Generator, Iterable, List, Mapping, Optional, cast, TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, Iterable, List, Mapping, Optional, Sequence, cast
 
 import discord
-from discord.types.snowflake import Snowflake
 import humanfriendly
 from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Cog, Command, CommandError, Context, Group
 from discord.ext.commands.core import get_signature_parameters
 from discord.ext.commands.parameters import Parameter, Signature
+from discord.types.snowflake import Snowflake
+
 from src.views.paginators.advanced import CategoryEntry, EmbedCategoryPaginator
 from src.views.paginators.button import EmbedButtonPaginator
 
@@ -171,7 +172,7 @@ class _HelpHybridCommandImpl(commands.HybridCommand[Cog, Any, Any]):
         cog = self.cog
         cog.get_commands = cog.get_commands.__wrapped__  # type: ignore
         cog.walk_commands = cog.walk_commands.__wrapped__  # type: ignore
-        self.cog = None # type: ignore
+        self.cog = None  # type: ignore
 
 
 class Formatter:
@@ -179,7 +180,9 @@ class Formatter:
         self.ctx = help_command.context
         self.help_command = help_command
 
-    def __format_command_signature(self, command: commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]) -> tuple[str, str]:
+    def __format_command_signature(
+        self, command: commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]
+    ) -> tuple[str, str]:
         params = self.help_command.get_command_signature(command)
         return f"{command.qualified_name}\n", f"```yaml\n{params}```"
 
@@ -214,7 +217,9 @@ class Formatter:
         return f"```yaml\nAliases: {', '.join(command.aliases)}```" if command.aliases else "No aliases."
 
     @staticmethod
-    def __format_command_cooldown(command: commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]) -> str:
+    def __format_command_cooldown(
+        command: commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any],
+    ) -> str:
         if isinstance(command, app_commands.Command):
             return "No cooldown set."
         return (
@@ -229,7 +234,9 @@ class Formatter:
             return "Command is enabled."
         return f"Enabled: {command.enabled}" if command.enabled else "Command is disabled."
 
-    def format_command(self, command: commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]) -> discord.Embed:
+    def format_command(
+        self, command: commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]
+    ) -> discord.Embed:
         signature = self.__format_command_signature(command)
         embed = discord.Embed(
             title=signature[0],
@@ -258,7 +265,12 @@ class Formatter:
     async def format_cog_or_group(
         self,
         cog_or_group: Optional[commands.GroupCog | app_commands.Group | commands.Cog | commands.Group[Any, ..., Any]],
-        commands_: Sequence[commands.Command[Any, ..., Any] | commands.Group[Any, ..., Any] | app_commands.Command[Any, ..., Any] | app_commands.Group],
+        commands_: Sequence[
+            commands.Command[Any, ..., Any]
+            | commands.Group[Any, ..., Any]
+            | app_commands.Command[Any, ..., Any]
+            | app_commands.Group
+        ],
     ) -> List[discord.Embed]:
         category_name = cog_or_group.qualified_name if cog_or_group else "No Category"
         if isinstance(cog_or_group, commands.Group):
@@ -365,7 +377,12 @@ class CustomHelpCommand(commands.HelpCommand):
 
     @staticmethod
     def flatten_commands(
-        commands_: Iterable[commands.Command[Any, ..., Any] | commands.Group[Any, ..., Any] | app_commands.Command[Any, ..., Any] | app_commands.Group],
+        commands_: Iterable[
+            commands.Command[Any, ..., Any]
+            | commands.Group[Any, ..., Any]
+            | app_commands.Command[Any, ..., Any]
+            | app_commands.Group
+        ],
     ) -> List[app_commands.Command[Any, ..., Any] | commands.Command[Any, ..., Any]]:
         flattened: list[app_commands.Command[Any, ..., Any] | commands.Command[Any, ..., Any]] = []
         for command in commands_:
@@ -437,7 +454,7 @@ class CustomHelpCommand(commands.HelpCommand):
         if isinstance(cog, commands.GroupCog):
             cmds.extend(cog.app_command.commands)  # type: ignore
         commands_ = await self.filter_commands(self.flatten_commands(cmds), sort=True)
-        embeds = await Formatter(self).format_cog_or_group(cog, commands_)  
+        embeds = await Formatter(self).format_cog_or_group(cog, commands_)
         paginator = EmbedButtonPaginator(self.context.author, pages=embeds)
         await paginator.start_paginator(self.context)
 
@@ -569,9 +586,12 @@ class CustomHelpCommand(commands.HelpCommand):
 
         all_cmds: dict[str, list[commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]]] = {
             cog.qualified_name if cog else "No Category": help_command.flatten_commands(cmds)
-            for cog, cmds in help_command.get_all_commands().items() if cmds
+            for cog, cmds in help_command.get_all_commands().items()
+            if cmds
         }
-        choices = list(all_cmds.keys()) + [_construct_full_name(cmd) for cmd in sum(all_cmds.values(), cast(list[Any], []))]
+        choices = list(all_cmds.keys()) + [
+            _construct_full_name(cmd) for cmd in sum(all_cmds.values(), cast(list[Any], []))
+        ]
         matches = difflib.get_close_matches(current, choices, n=25, cutoff=0.4) or sorted(
             choices, key=lambda x: x.lower()
         )
