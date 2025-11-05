@@ -11,8 +11,9 @@ from discord.app_commands.errors import AppCommandError
 from discord.ext import commands
 from discord.interactions import Interaction
 
-from src.core.embeds import build_error_embed
+from src.core.checks import get_cooldown_bucket
 from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
+from src.utils.embeds import build_error_embed
 
 if t.TYPE_CHECKING:
     from src.core.bot import HackspaceBot
@@ -22,7 +23,7 @@ __all__: tuple[str, ...] = ("SlashCommandTree",)
 logger = logging.getLogger(__name__)
 
 
-class SlashCommandTree(app_commands.CommandTree):
+class SlashCommandTree(app_commands.CommandTree["HackspaceBot"]):
     def __init__(self, *args: t.Any, **kwargs: t.Any) -> None:
         super().__init__(*args, **kwargs)
         self.application_commands: dict[int | None, list[app_commands.AppCommand]] = {}
@@ -94,6 +95,13 @@ class SlashCommandTree(app_commands.CommandTree):
     async def on_error(self, interaction: Interaction["HackspaceBot"], error: AppCommandError | Exception) -> None:  # type: ignore[override]
         if isinstance(error, app_commands.errors.CommandInvokeError):
             error = error.original
+
+        if not isinstance(error, app_commands.errors.CommandOnCooldown) and interaction.command is not None:
+            buckets = [b for c in interaction.command.checks if (b := get_cooldown_bucket(c)) is not None]
+            for bucket_func in buckets:
+                bucket = await bucket_func(interaction)
+                if bucket is not None:
+                    bucket.reset()
 
         error_response = BotExceptions.get_response(error)
 

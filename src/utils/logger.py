@@ -19,6 +19,8 @@ __all__: tuple[str, ...] = (
     "setup_logging",
 )
 
+logger = logging.getLogger(__name__)
+
 BASE_DICT_ATTRS: tuple[str, ...] = (
     "name",
     "msg",
@@ -235,7 +237,6 @@ def setup_logging(
     def handle_exception(
         exc_type: type[BaseException], exc_value: BaseException, exc_traceback: TracebackType | None
     ) -> None:
-        logger = logging.getLogger("")
         if issubclass(exc_type, KeyboardInterrupt):
             sys.__excepthook__(exc_type, exc_value, exc_traceback)
             return

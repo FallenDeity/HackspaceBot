@@ -34,7 +34,7 @@ class ExceptionResponse:
         return self.message
 
 
-class HackspaceBotException(commands.CommandError): ...
+class HackspaceBotException(commands.CommandError, app_commands.AppCommandError): ...
 
 
 class ViewTimeout(HackspaceBotException):

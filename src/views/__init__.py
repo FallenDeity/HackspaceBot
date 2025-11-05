@@ -6,8 +6,8 @@ import typing
 
 import discord
 
-from src.core.embeds import build_view_error_embed
 from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
+from src.utils.embeds import build_view_error_embed
 
 if typing.TYPE_CHECKING:
     from src.core.bot import HackspaceBot

@@ -11,9 +11,9 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from src.core.embeds import build_error_embed
 from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
 from src.utils.constants import Channels
+from src.utils.embeds import build_error_embed
 from src.utils.env import ENV
 from src.utils.help import CustomHelpCommand
 from src.utils.tree import SlashCommandTree
@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 
 class HackspaceBot(commands.Bot):
-    tree: SlashCommandTree  # type: ignore
     client: aiohttp.ClientSession
     _uptime: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
 
@@ -108,3 +107,7 @@ class HackspaceBot(commands.Bot):
     @property
     def uptime(self) -> datetime.timedelta:
         return datetime.datetime.now(datetime.timezone.utc) - self._uptime
+
+    @property
+    def tree(self) -> SlashCommandTree:  # type: ignore[override]
+        return t.cast(SlashCommandTree, super().tree)

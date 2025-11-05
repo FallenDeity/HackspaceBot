@@ -16,6 +16,7 @@ from discord.ext.commands.core import get_signature_parameters
 from discord.ext.commands.parameters import Parameter, Signature
 from discord.types.snowflake import Snowflake
 
+from src.core.checks import get_cooldown_bucket
 from src.views.paginators.advanced import CategoryEntry, EmbedCategoryPaginator
 from src.views.paginators.button import EmbedButtonPaginator
 
@@ -180,16 +181,25 @@ class Formatter:
         self.ctx = help_command.context
         self.help_command = help_command
 
+    async def _get_prefix(self) -> str:
+        prefix_or_callable = self.ctx.bot.command_prefix  # type: ignore
+        if isinstance(prefix_or_callable, (str, Iterable)):
+            return prefix_or_callable if isinstance(prefix_or_callable, str) else list(prefix_or_callable)[-1]  # type: ignore
+        str_or_iterable = await discord.utils.maybe_coroutine(prefix_or_callable, self.ctx.bot, self.ctx.message)  # type: ignore
+        return str_or_iterable if isinstance(str_or_iterable, str) else list(str_or_iterable)[-1]  # type: ignore
+
     async def __format_command_signature(
         self, command: commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]
     ) -> tuple[str, str]:
-        params = self.help_command.get_command_signature(command)
+        params = self.help_command.get_command_signature(command).strip(self.ctx.clean_prefix)
+        prefix_only_command = isinstance(command, commands.Command) and not isinstance(command, commands.HybridCommand)
+        prefix = await self._get_prefix() if prefix_only_command else "/"
         command_mention = (
-            command.qualified_name
-            if isinstance(command, commands.Command)
-            else await self.ctx.bot.tree.find_mention_for(command)
+            f"{prefix}{command.qualified_name}"
+            if prefix_only_command
+            else await self.ctx.bot.tree.find_mention_for(command)  # type: ignore
         )
-        return f"{command_mention}\n", f"```yaml\n{params}```"
+        return f"{command_mention}\n", f"```yaml\n{prefix}{params}```"
 
     @staticmethod
     def __format_param(param: app_commands.Parameter | commands.Parameter) -> str:
@@ -378,7 +388,7 @@ class CustomHelpCommand(commands.HelpCommand):
             formatted = f"{param.name}{default} ({choices})" if choices else f"{param.name}{default}"
             params.append(_format_param(formatted, required=param.required))
 
-        return f"/{command_path} {' '.join(params)}"
+        return f"{command_path} {' '.join(params)}"
 
     @staticmethod
     def flatten_commands(
@@ -593,10 +603,6 @@ class CustomHelpCommand(commands.HelpCommand):
 
         return mapping
 
-    async def on_help_command_error(self, ctx: Context[HackspaceBot], error: CommandError, /) -> None:  # type: ignore
-        await self.send_error_message(str(error))
-        raise error
-
     async def help_command_autocomplete(
         self, inter: discord.Interaction[commands.Bot], current: str
     ) -> list[app_commands.Choice[str]]:
@@ -664,7 +670,12 @@ class CustomHelpCommand(commands.HelpCommand):
                 return False
 
             try:
-                return await cmd._check_can_run(ctx.interaction)  # type: ignore
+                checks_without_cooldown = [c for c in cmd.checks if get_cooldown_bucket(c) is None]
+                original = cmd.checks
+                cmd.checks = checks_without_cooldown
+                can_run = await cmd._check_can_run(ctx.interaction)  # type: ignore
+                cmd.checks = original
+                return can_run
             except app_commands.AppCommandError:
                 return False
 
