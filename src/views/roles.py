@@ -25,13 +25,12 @@ def _decode_roles(encoded: str) -> list[int]:
     return [int.from_bytes(data[i : i + 8], "big") for i in range(0, len(data), 8)]
 
 
-class DynamicRoleSelect(discord.ui.DynamicItem[discord.ui.RoleSelect[discord.ui.View]], template=r"^(?P<data>.+)$"):
+class DynamicRoleSelect(discord.ui.DynamicItem[discord.ui.RoleSelect[discord.ui.View]], template=r"drs:(?P<data>.+)$"):
     def __init__(self, *, roles: list[int]):
-        print("Encoding roles:", roles)
         self.roles = roles
         super().__init__(
             discord.ui.RoleSelect(
-                custom_id=_encode_roles(roles),
+                custom_id=f"drs:{_encode_roles(roles)}",
                 placeholder="Select your roles",
                 min_values=1,
                 max_values=1,
@@ -42,7 +41,6 @@ class DynamicRoleSelect(discord.ui.DynamicItem[discord.ui.RoleSelect[discord.ui.
     async def from_custom_id(
         cls: type[t.Self], interaction: discord.Interaction, item: Item[t.Any], match: re.Match[str]
     ) -> t.Self:
-        print("Decoding roles from custom_id:", match.group("data"))
         return cls(roles=_decode_roles(match.group("data")))
 
     async def callback(self, interaction: discord.Interaction) -> None:
@@ -77,7 +75,7 @@ class ReactionRolesSetup(BaseView):
         cls=discord.ui.RoleSelect,
         placeholder="Select a role",
         min_values=1,
-        max_values=10,
+        max_values=9,
         custom_id="reaction_roles_setup_select",
     )
     async def role_select(

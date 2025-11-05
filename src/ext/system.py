@@ -9,7 +9,7 @@ from discord.ext import tasks
 from src.core.checks import developer_only
 from src.utils.ansi import AnsiBuilder, Colors, Styles
 from src.utils.constants import PRESENCE_MAP
-from src.views.roles import DynamicRoleSelect, ReactionRolesSetup
+from src.views.roles import ReactionRolesSetup
 
 from . import BaseCog
 
@@ -39,8 +39,6 @@ class Utility(BaseCog):
     async def cog_load(self) -> None:
         help_command = self.bot.help_command
         help_command.cog = self  # type: ignore
-        self.bot.remove_dynamic_items(DynamicRoleSelect)
-        self.bot.add_dynamic_items(DynamicRoleSelect)
         await super().cog_load()
 
     async def cog_unload(self) -> None:
