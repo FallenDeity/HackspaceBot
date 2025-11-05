@@ -6,6 +6,7 @@ import discord
 from discord import PartialEmoji
 from discord.ext.commands.context import Context
 
+from src.utils.constants import ButtonEmoji
 from src.views.paginators import BasePaginator, FileLike, PageLike
 
 if TYPE_CHECKING:
@@ -34,31 +35,31 @@ class ButtonBasedPaginator(Generic[T], BasePaginator[T]):
         )
         return await super().send_page(ctx_or_inter, page)
 
-    @discord.ui.button(emoji=PartialEmoji.from_str("⏪"))
+    @discord.ui.button(emoji=PartialEmoji.from_str(ButtonEmoji.FIRST))
     async def goto_first_page_callback(self, inter: discord.Interaction, _: discord.ui.Button[BaseView]) -> None:
         await inter.response.defer()
         self.current_page = 0
         page = self.pages[self.current_page]
         await self.send_page(inter, page)
 
-    @discord.ui.button(emoji=PartialEmoji.from_str("◀️"))
+    @discord.ui.button(emoji=PartialEmoji.from_str(ButtonEmoji.PREVIOUS))
     async def previous_page_callback(self, inter: discord.Interaction, _: discord.ui.Button[BaseView]) -> None:
         await inter.response.defer()
         await self.previous_page(inter)
 
-    @discord.ui.button(emoji=PartialEmoji.from_str("▶️"))
+    @discord.ui.button(emoji=PartialEmoji.from_str(ButtonEmoji.NEXT))
     async def next_page_callback(self, inter: discord.Interaction, _: discord.ui.Button[BaseView]) -> None:
         await inter.response.defer()
         await self.next_page(inter)
 
-    @discord.ui.button(emoji=PartialEmoji.from_str("⏩"))
+    @discord.ui.button(emoji=PartialEmoji.from_str(ButtonEmoji.LAST))
     async def goto_last_page_callback(self, inter: discord.Interaction, _: discord.ui.Button[BaseView]) -> None:
         await inter.response.defer()
         self.current_page = len(self.pages) - 1
         page = self.pages[self.current_page]
         await self.send_page(inter, page)
 
-    @discord.ui.button(emoji=PartialEmoji.from_str("🗑️"))
+    @discord.ui.button(emoji=PartialEmoji.from_str(ButtonEmoji.STOP))
     async def stop_paginator_callback(self, inter: discord.Interaction, _: discord.ui.Button[BaseView]) -> None:
         await inter.response.defer()
         await self.stop_paginator()

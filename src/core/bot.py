@@ -12,11 +12,11 @@ import discord
 from discord.ext import commands
 
 from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
+from src.core.tree import SlashCommandTree
 from src.utils.constants import Channels
 from src.utils.embeds import build_error_embed
 from src.utils.env import ENV
 from src.utils.help import CustomHelpCommand
-from src.utils.tree import SlashCommandTree
 
 __all__: tuple[str, ...] = ("HackspaceBot",)
 

@@ -4,32 +4,17 @@ import typing as t
 
 import discord
 from discord import app_commands
-from discord.ext import commands, tasks
+from discord.ext import tasks
 
 from src.core.checks import developer_only
-from src.core.errors import ViewTimeout
+from src.utils.ansi import AnsiBuilder, Colors, Styles
 from src.utils.constants import PRESENCE_MAP
-from src.views import BaseModal, BaseView
+from src.views.roles import DynamicRoleSelect, ReactionRolesSetup
 
 from . import BaseCog
 
 if t.TYPE_CHECKING:
     from src.core.bot import HackspaceBot
-
-
-class MyModal(BaseModal):
-    name = discord.ui.TextInput[BaseModal](label="Enter something", placeholder="Type here...")
-
-
-class MyView(BaseView):
-    @discord.ui.button(label="Click Me", style=discord.ButtonStyle.primary)
-    async def click_me(self, interaction: discord.Interaction, button: discord.ui.Button["MyView"]) -> None:
-        modal = MyModal(title="Test Modal", timeout=10.0)
-        await interaction.response.send_modal(modal)
-        timedout = await modal.wait()
-        if timedout:
-            raise ViewTimeout("The modal has timed out.")
-        await interaction.edit_original_response(content="You entered: " + modal.name.value)
 
 
 class Utility(BaseCog):
@@ -44,7 +29,7 @@ class Utility(BaseCog):
         )
     )
 
-    @tasks.loop(seconds=10)
+    @tasks.loop(minutes=5)
     async def presence_loop(self) -> None:
         activity_type = next(self._activity_types)
         phrase = random.choice(PRESENCE_MAP.get(activity_type, []))
@@ -54,6 +39,8 @@ class Utility(BaseCog):
     async def cog_load(self) -> None:
         help_command = self.bot.help_command
         help_command.cog = self  # type: ignore
+        self.bot.remove_dynamic_items(DynamicRoleSelect)
+        self.bot.add_dynamic_items(DynamicRoleSelect)
         await super().cog_load()
 
     async def cog_unload(self) -> None:
@@ -65,28 +52,31 @@ class Utility(BaseCog):
     @developer_only()
     async def ping(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer()
-        await interaction.edit_original_response(content=f"Pong! Latency: {round(self.bot.latency * 1000)}ms")
+        embed = discord.Embed(
+            title="🏓 Pong!",
+            description=AnsiBuilder.from_string(
+                f"Bot Latency: {round(self.bot.latency * 1000)} ms", Colors.CYAN, Styles.BOLD
+            ),
+            color=discord.Color.green(),
+        )
+        embed.timestamp = discord.utils.utcnow()
+        embed.set_thumbnail(url=self.bot.user.display_avatar)
+        await interaction.edit_original_response(embed=embed)
 
-    @app_commands.command(name="error_check", description="Check the bot's error handling.")
-    @app_commands.checks.cooldown(1, 60, key=lambda i: i.user.id)
-    async def error_check(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer()
-        raise ValueError("This is a test error.")
-
-    @commands.command(name="text_error_check", help="Check the bot's error handling with text command.")
-    @commands.cooldown(1, 300, commands.BucketType.user)
-    async def text_error_check(self, ctx: commands.Context["HackspaceBot"], x: int = 7) -> None:
-        raise ValueError("This is a test error from a text command.")
-
-    @commands.command(name="view_check", help="Check the bot's view error handling.")
-    async def view_check(self, ctx: commands.Context["HackspaceBot"]) -> None:
-        view = MyView(user=ctx.author)
-        await ctx.send("Click the button to test error handling in views.", view=view)
-
-    @app_commands.command(name="modal_check", description="Check the bot's modal error handling.")
-    async def modal_check(self, interaction: discord.Interaction) -> None:
-        modal = MyModal(title="Test Modal")
-        await interaction.response.send_modal(modal)
+    @app_commands.command(name="reaction_roles", description="Set up reaction roles in the current channel.")
+    @developer_only()
+    async def reaction_roles(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(ephemeral=True)
+        embed = discord.Embed(
+            title="Reaction Roles Setup",
+            description="Please select the roles you want to set up for reaction roles.",
+            color=discord.Color.blurple(),
+        )
+        embed.timestamp = discord.utils.utcnow()
+        embed.set_thumbnail(url=self.bot.user.display_avatar)  # type: ignore
+        embed.set_footer(text="Select roles and confirm to set up reaction roles.")
+        view = ReactionRolesSetup(user=interaction.user)
+        await interaction.edit_original_response(embed=embed, view=view)
 
 
 async def setup(bot: "HackspaceBot") -> None:

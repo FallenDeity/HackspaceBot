@@ -24,6 +24,14 @@ class Channels(enum.IntEnum):
     LOGS = 1434971795739639970
 
 
+class ButtonEmoji(enum.StrEnum):
+    PREVIOUS = "<:ArrowLeft:989134685068202024>"
+    NEXT = "<:rightArrow:989136803284004874>"
+    STOP = "<:dustbin:989150297333043220>"
+    LAST = "<:DoubleArrowRight:989134892384256011>"
+    FIRST = "<:DoubleArrowLeft:989134953142956152>"
+
+
 def format_uptime(bot: "HackspaceBot") -> str:
     return humanfriendly.format_timespan(bot.uptime.total_seconds(), max_units=2)  # type: ignore
 

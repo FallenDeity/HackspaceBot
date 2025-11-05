@@ -5,6 +5,7 @@ import logging
 import typing
 
 import discord
+from discord.ui.select import BaseSelect
 
 from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
 from src.utils.embeds import build_view_error_embed
@@ -40,7 +41,7 @@ class BaseView(discord.ui.View):
         # disable all components
         # so components that can be disabled are buttons and select menus
         for item in self.children:
-            if isinstance(item, discord.ui.Button) or isinstance(item, discord.ui.Select):
+            if isinstance(item, discord.ui.Button) or isinstance(item, BaseSelect):
                 item.disabled = True
 
     # after disabling all components we need to edit the message with the new view
