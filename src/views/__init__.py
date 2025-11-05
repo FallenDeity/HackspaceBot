@@ -1,10 +1,19 @@
 from __future__ import annotations
 
-import traceback
+import io
+import logging
 import typing
 
 import discord
-from discord.ui.select import Select
+
+from src.core.embeds import build_view_error_embed
+from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
+
+if typing.TYPE_CHECKING:
+    from src.core.bot import HackspaceBot
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseView(discord.ui.View):
@@ -31,7 +40,7 @@ class BaseView(discord.ui.View):
         # disable all components
         # so components that can be disabled are buttons and select menus
         for item in self.children:
-            if isinstance(item, discord.ui.Button) or isinstance(item, Select):
+            if isinstance(item, discord.ui.Button) or isinstance(item, discord.ui.Select):
                 item.disabled = True
 
     # after disabling all components we need to edit the message with the new view
@@ -50,15 +59,24 @@ class BaseView(discord.ui.View):
                 # if already responded to, edit the response
                 await self.interaction.edit_original_response(**kwargs)
 
-    async def on_error(
-        self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item[BaseView]
+    async def on_error(  # type: ignore[override]
+        self, interaction: discord.Interaction[HackspaceBot], error: Exception, item: discord.ui.Item[BaseView]
     ) -> None:
-        tb = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-        message = f"An error occurred while processing the interaction for {str(item)}:\n```py\n{tb}\n```"
+        error_response = BotExceptions.get_response(error)
+
+        if isinstance(error_response, ExceptionResponse):
+            if error_response.error is UnknownError:
+                embeds, description, tb = build_view_error_embed(interaction, error, item)
+                logger.error(f"{description}\n{tb}")
+                await interaction.client.sys_log(
+                    embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
+                )
+            error_response = str(error_response)
+
         # disable all components
         self._disable_all()
         # edit the message with the error message
-        await self._edit(content=message, view=self)
+        await self._edit(content=error_response, view=self)
         # stop the view
         self.stop()
 
@@ -78,13 +96,23 @@ class BaseModal(discord.ui.Modal):
         self._interaction = interaction
         self.stop()
 
-    async def on_error(self, interaction: discord.Interaction, error: Exception) -> None:
-        tb = "".join(traceback.format_exception(type(error), error, error.__traceback__))
-        message = f"An error occurred while processing the interaction:\n```py\n{tb}\n```"
+    async def on_error(self, interaction: discord.Interaction[HackspaceBot], error: Exception) -> None:  # type: ignore[override]
+        error_response = BotExceptions.get_response(error)
+
+        if isinstance(error_response, ExceptionResponse):
+            if error_response.error is UnknownError:
+                embeds, description, tb = build_view_error_embed(interaction, error, self)
+                logger.error(f"{description}\n{tb}")
+                await interaction.client.sys_log(
+                    embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
+                )
+            error_response = str(error_response)
+
         try:
-            await interaction.response.send_message(message, ephemeral=True)
+            await interaction.response.send_message(error_response, ephemeral=True)
         except discord.InteractionResponded:
-            await interaction.edit_original_response(content=message, view=None)
+            await interaction.edit_original_response(content=error_response, view=None)
+
         self.stop()
 
     @property

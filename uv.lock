@@ -178,6 +178,15 @@ wheels = [
 ]
 
 [[package]]
+name = "braceexpand"
+version = "0.1.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/54/93/badd4f5ccf25209f3fef2573073da9fe4a45a3da99fca2f800f942130c0f/braceexpand-0.1.7.tar.gz", hash = "sha256:e6e539bd20eaea53547472ff94f4fb5c3d3bf9d0a89388c4b56663aba765f705", size = 7777, upload-time = "2021-05-07T13:49:07.323Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/93/e8c04e80e82391a6e51f218ca49720f64236bc824e92152a2633b74cf7ab/braceexpand-0.1.7-py2.py3-none-any.whl", hash = "sha256:91332d53de7828103dcae5773fb43bc34950b0c8160e35e0f44c4427a3b85014", size = 5923, upload-time = "2021-05-07T13:49:05.146Z" },
+]
+
+[[package]]
 name = "cfgv"
 version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -318,6 +327,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "discord-py" },
     { name = "humanfriendly" },
+    { name = "jishaku" },
     { name = "python-dotenv" },
 ]
 
@@ -334,6 +344,7 @@ dev = [
 requires-dist = [
     { name = "discord-py", specifier = ">=2.6.4" },
     { name = "humanfriendly", specifier = ">=10.0" },
+    { name = "jishaku", specifier = ">=2.6.3" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
 ]
 
@@ -377,12 +388,38 @@ wheels = [
 ]
 
 [[package]]
+name = "import-expression"
+version = "2.2.1.post1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/95/dd/4c561ce20064985b2a7d3eadb4002c981c8906a4efd309a0b595acb2727a/import_expression-2.2.1.post1.tar.gz", hash = "sha256:1c831bf26bef7edf36a97b34c687b962e7abe06116c66f00e14f9a3218623d4f", size = 16044, upload-time = "2024-10-23T06:06:37.221Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/38/92/437a1dbc58241770198dc4d966a2e6363bd684f961070623aec975cfe03f/import_expression-2.2.1.post1-py3-none-any.whl", hash = "sha256:7b3677e889816e0dbdcc7f42f4534071c54c667f32c71097522ea602f6497902", size = 23919, upload-time = "2024-10-23T06:06:35.892Z" },
+]
+
+[[package]]
 name = "isort"
 version = "7.0.0"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/63/53/4f3c058e3bace40282876f9b553343376ee687f3c35a525dc79dbd450f88/isort-7.0.0.tar.gz", hash = "sha256:5513527951aadb3ac4292a41a16cbc50dd1642432f5e8c20057d414bdafb4187", size = 805049, upload-time = "2025-10-11T13:30:59.107Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7f/ed/e3705d6d02b4f7aea715a353c8ce193efd0b5db13e204df895d38734c244/isort-7.0.0-py3-none-any.whl", hash = "sha256:1bcabac8bc3c36c7fb7b98a76c8abb18e0f841a3ba81decac7691008592499c1", size = 94672, upload-time = "2025-10-11T13:30:57.665Z" },
+]
+
+[[package]]
+name = "jishaku"
+version = "2.6.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "braceexpand" },
+    { name = "click" },
+    { name = "discord-py" },
+    { name = "import-expression" },
+    { name = "tabulate" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ac/4e/1b846182ba10f1989187dab75503fb5c56f69afd71b267aecb07c614a7c5/jishaku-2.6.3.tar.gz", hash = "sha256:5b1b91981b6809f68645a16ebc56492c868d4ff1e72566e54fe4bbf43f00a603", size = 75923, upload-time = "2025-10-19T21:25:11.948Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/75/e3/703b6e4f49b16957626a47df3bbc3344d13ef9122ed2848836bd05a1b69f/jishaku-2.6.3-py3-none-any.whl", hash = "sha256:96ea7c4564b6bc3910b829be71889b837b0384b263a922512afd1ee0036f7c74", size = 81728, upload-time = "2025-10-19T21:25:10.686Z" },
 ]
 
 [[package]]
@@ -696,6 +733,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/9f/a4/35f1ef68c4e7b236d4a5204e3669efdeefaef21f0ff6a456792b3d8be438/ruff-0.14.3-py3-none-win32.whl", hash = "sha256:f3d91857d023ba93e14ed2d462ab62c3428f9bbf2b4fbac50a03ca66d31991f7", size = 12500045, upload-time = "2025-10-31T00:26:20.503Z" },
     { url = "https://files.pythonhosted.org/packages/03/15/51960ae340823c9859fb60c63301d977308735403e2134e17d1d2858c7fb/ruff-0.14.3-py3-none-win_amd64.whl", hash = "sha256:d7b7006ac0756306db212fd37116cce2bd307e1e109375e1c6c106002df0ae5f", size = 13594005, upload-time = "2025-10-31T00:26:22.533Z" },
     { url = "https://files.pythonhosted.org/packages/b7/73/4de6579bac8e979fca0a77e54dec1f1e011a0d268165eb8a9bc0982a6564/ruff-0.14.3-py3-none-win_arm64.whl", hash = "sha256:26eb477ede6d399d898791d01961e16b86f02bc2486d0d1a7a9bb2379d055dc1", size = 12590017, upload-time = "2025-10-31T00:26:24.52Z" },
+]
+
+[[package]]
+name = "tabulate"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ec/fe/802052aecb21e3797b8f7902564ab6ea0d60ff8ca23952079064155d1ae1/tabulate-0.9.0.tar.gz", hash = "sha256:0095b12bf5966de529c0feb1fa08671671b3368eec77d7ef7ab114be2c068b3c", size = 81090, upload-time = "2022-10-06T17:21:48.54Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/40/44/4a5f08c96eb108af5cb50b41f76142f0afa346dfa99d5296fe7202a11854/tabulate-0.9.0-py3-none-any.whl", hash = "sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f", size = 35252, upload-time = "2022-10-06T17:21:44.262Z" },
 ]
 
 [[package]]

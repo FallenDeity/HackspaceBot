@@ -1,15 +1,19 @@
 from __future__ import annotations
 
 import datetime
+import io
 import logging
 import pathlib
 import traceback
-import typing
+import typing as t
 
 import aiohttp
 import discord
 from discord.ext import commands
 
+from src.core.embeds import build_error_embed
+from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
+from src.utils.constants import Channels
 from src.utils.env import ENV
 from src.utils.help import CustomHelpCommand
 from src.utils.tree import SlashCommandTree
@@ -20,10 +24,11 @@ logger = logging.getLogger(__name__)
 
 
 class HackspaceBot(commands.Bot):
+    tree: SlashCommandTree  # type: ignore
     client: aiohttp.ClientSession
     _uptime: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
 
-    def __init__(self, prefix: str, ext_dir: str | pathlib.Path, *args: typing.Any, **kwargs: typing.Any) -> None:
+    def __init__(self, prefix: str, ext_dir: str | pathlib.Path, *args: t.Any, **kwargs: t.Any) -> None:
         super().__init__(
             *args,
             **kwargs,
@@ -33,7 +38,6 @@ class HackspaceBot(commands.Bot):
             tree_cls=SlashCommandTree,
         )
         self.ext_dir = pathlib.Path(ext_dir)
-        self.synced = True
 
     async def _load_extensions(self) -> None:
         if not self.ext_dir.is_dir():
@@ -47,7 +51,34 @@ class HackspaceBot(commands.Bot):
                 except commands.ExtensionError:
                     logger.error(f"Failed to load extension {filename.stem}\n{traceback.format_exc()}")
 
-    async def on_error(self, event_method: str, *args: typing.Any, **kwargs: typing.Any) -> None:
+    async def on_command_error(self, context: commands.Context[HackspaceBot], exception: commands.CommandError | Exception) -> None:  # type: ignore[override]
+        if isinstance(exception, commands.CommandNotFound):
+            return
+        if not isinstance(exception, commands.CommandOnCooldown) and context.command is not None:
+            context.command.reset_cooldown(context)
+        if isinstance(exception, commands.CommandInvokeError):
+            exception = exception.original
+
+        error_response = BotExceptions.get_response(exception)
+
+        if isinstance(error_response, ExceptionResponse):
+            if error_response.error is UnknownError:
+                embeds, description, tb = build_error_embed(context, exception)
+                logger.error(f"{description}\n{tb}")
+                await self.sys_log(
+                    embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
+                )
+            error_response = str(error_response)
+
+        await context.reply(error_response)
+
+    async def sys_log(self, *args: t.Any, **kwargs: t.Any) -> None:
+        channel = t.cast(
+            discord.TextChannel, self.get_channel(Channels.LOGS) or await self.fetch_channel(Channels.LOGS)
+        )
+        await channel.send(*args, **kwargs)
+
+    async def on_error(self, event_method: str, *args: t.Any, **kwargs: t.Any) -> None:
         logger.error(f"An error occurred in {event_method}.\n{traceback.format_exc()}")
 
     async def on_ready(self) -> None:
@@ -56,16 +87,13 @@ class HackspaceBot(commands.Bot):
     async def setup_hook(self) -> None:
         self.client = aiohttp.ClientSession()
         await self._load_extensions()
-        if not self.synced:
-            await self.tree.sync()
-            self.synced = not self.synced
-            logger.info("Synced command tree")
+        await self.load_extension("jishaku")
 
     async def close(self) -> None:
-        await super().close()
         await self.client.close()
+        await super().close()
 
-    def run(self, *args: typing.Any, **kwargs: typing.Any) -> None:
+    def run(self, *args: t.Any, **kwargs: t.Any) -> None:
         try:
             super().run(ENV.DISCORD_TOKEN, *args, **kwargs)
         except (discord.LoginFailure, KeyboardInterrupt):
@@ -75,7 +103,7 @@ class HackspaceBot(commands.Bot):
     @property
     def user(self) -> discord.ClientUser:
         assert super().user, "Bot is not ready yet"
-        return typing.cast(discord.ClientUser, super().user)
+        return t.cast(discord.ClientUser, super().user)
 
     @property
     def uptime(self) -> datetime.timedelta:

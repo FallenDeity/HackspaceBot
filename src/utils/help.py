@@ -180,11 +180,16 @@ class Formatter:
         self.ctx = help_command.context
         self.help_command = help_command
 
-    def __format_command_signature(
+    async def __format_command_signature(
         self, command: commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]
     ) -> tuple[str, str]:
         params = self.help_command.get_command_signature(command)
-        return f"{command.qualified_name}\n", f"```yaml\n{params}```"
+        command_mention = (
+            command.qualified_name
+            if isinstance(command, commands.Command)
+            else await self.ctx.bot.tree.find_mention_for(command)
+        )
+        return f"{command_mention}\n", f"```yaml\n{params}```"
 
     @staticmethod
     def __format_param(param: app_commands.Parameter | commands.Parameter) -> str:
@@ -234,10 +239,10 @@ class Formatter:
             return "Command is enabled."
         return f"Enabled: {command.enabled}" if command.enabled else "Command is disabled."
 
-    def format_command(
+    async def format_command(
         self, command: commands.Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]
     ) -> discord.Embed:
-        signature = self.__format_command_signature(command)
+        signature = await self.__format_command_signature(command)
         embed = discord.Embed(
             title=signature[0],
             description=signature[1] + self.__format_command_help(command),
@@ -295,7 +300,7 @@ class Formatter:
         for i in range(0, len(commands_), 5):
             embed = cog_embed.copy()
             for command in commands_[i : i + 5]:
-                signature = self.__format_command_signature(command)  # type: ignore
+                signature = await self.__format_command_signature(command)  # type: ignore
                 embed.add_field(
                     name=signature[0],
                     value=signature[1] + self.__format_command_help(command),  # type: ignore
@@ -427,7 +432,7 @@ class CustomHelpCommand(commands.HelpCommand):
             CategoryEntry(
                 category_title="Home",
                 category_description="Documentation Bot Home Page",
-                pages=home_pages,
+                pages=home_pages or [home_embed],
             )
         ]
         for cog, cmds in mapping.items():
@@ -465,7 +470,7 @@ class CustomHelpCommand(commands.HelpCommand):
         await paginator.start_paginator(self.context)
 
     async def send_command_help(self, command: Command[Any, ..., Any] | app_commands.Command[Any, ..., Any], /) -> None:
-        embed = Formatter(self).format_command(command)
+        embed = await Formatter(self).format_command(command)
         await self.context.send(embed=embed)
 
     async def send_error_message(self, error: str, /) -> None:
@@ -538,12 +543,24 @@ class CustomHelpCommand(commands.HelpCommand):
             return await self.send_group_help(cmd)  # type: ignore
         return await self.send_command_help(cmd)  # type: ignore
 
+    def get_bot_mapping(self) -> Dict[Optional[Cog], List[Command[Any, ..., Any]]]:
+        bot = self.context.bot
+        mapping: Dict[Optional[Cog], List[Command[Any, ..., Any]]] = {
+            cog: [c for c in cog.get_commands() if not getattr(c, "hidden", False)]
+            for cog in bot.cogs.values()
+            if getattr(cog, "hidden", False) is False
+        }
+        mapping[None] = [c for c in bot.commands if c.cog is None and not getattr(c, "hidden", False)]
+        return {cog: cmds for cog, cmds in mapping.items() if cmds}
+
     def get_all_commands(
         self,
     ) -> Mapping[Optional[Cog], List[Command[Any, ..., Any] | app_commands.Command[Any, ..., Any]]]:
         mapping = self.get_bot_mapping()
         if self.with_app_command:
             for cog, cmds in self.get_app_command_mapping().items():
+                if getattr(cog, "hidden", False):
+                    continue
                 for cmd in cmds:
                     if cmd.name not in (c.name for c in mapping.get(cog, [])):
                         mapping.setdefault(cog, []).append(cmd)  # type: ignore
@@ -554,6 +571,8 @@ class CustomHelpCommand(commands.HelpCommand):
     ) -> Mapping[Optional[Cog], List[app_commands.Command[Any, ..., Any] | app_commands.Group]]:
         mapping: Mapping[Optional[Cog], List[app_commands.Command[Any, ..., Any] | app_commands.Group]] = {}
         for cog in self.context.bot.cogs.values():
+            if getattr(cog, "hidden", False):
+                continue
             if isinstance(cog, commands.GroupCog):
                 mapping.setdefault(cog, [*cog.get_commands()]).extend(cog.app_command.commands)  # type: ignore
                 continue

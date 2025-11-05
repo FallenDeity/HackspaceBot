@@ -5,9 +5,11 @@ import logging
 import logging.config
 import os
 import pathlib
+import sys
 import traceback
 import typing as t
 from logging.handlers import RotatingFileHandler
+from types import TracebackType
 
 __all__: tuple[str, ...] = (
     "LogLevelColors",
@@ -161,7 +163,7 @@ class DailyRotatingFileHandler(RotatingFileHandler):
 def setup_logging(
     log_level: int = logging.DEBUG,
     file_logging: bool = True,
-    filename: str = "discord-mcp",
+    filename: str = "hackspace-bot",
     log_dir: str | pathlib.Path = "logs",
 ) -> None:
     """
@@ -185,6 +187,12 @@ def setup_logging(
             "filename": filename,
             "folder": str(log_dir),
         }
+
+    discord_handlers = (
+        "discord",
+        "discord.client",
+        "discord.gateway",
+    )
 
     logging_config = {
         "version": 1,
@@ -211,12 +219,26 @@ def setup_logging(
                 "level": log_level,
                 "propagate": False,
             },
-            "discord": {
-                "handlers": list(handlers.keys()),
-                "level": "INFO",
-                "propagate": False,
+            **{
+                discord_key: {
+                    "handlers": list(handlers.keys()),
+                    "level": logging.INFO,
+                    "propagate": False,
+                }
+                for discord_key in discord_handlers
             },
         },
     }
 
     logging.config.dictConfig(logging_config)
+
+    def handle_exception(
+        exc_type: type[BaseException], exc_value: BaseException, exc_traceback: TracebackType | None
+    ) -> None:
+        logger = logging.getLogger("")
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        logger.critical("Unhandled exception", exc_info=(exc_type, exc_value, exc_traceback))
+
+    sys.excepthook = handle_exception

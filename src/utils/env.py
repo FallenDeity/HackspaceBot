@@ -44,11 +44,8 @@ class EnvVar(t.Generic[T]):
         return self.cast(self.value)
 
 
-@attrs.define(kw_only=True)
 class Environment:
-    DISCORD_TOKEN: EnvVar[str] = attrs.field(
-        default=EnvVar(name="DISCORD_TOKEN", required=True, cast=str),
-    )
+    DISCORD_TOKEN: EnvVar[str] = EnvVar(name="DISCORD_TOKEN", required=True, cast=str)
 
 
 ENV = Environment()
