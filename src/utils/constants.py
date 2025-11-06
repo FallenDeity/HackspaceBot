@@ -14,9 +14,11 @@ __all__: tuple[str, ...] = (
     "Channels",
     "Roles",
     "URLs",
+    "Campus",
     "ButtonEmoji",
     "DEVELOPER_IDS",
     "PRESENCE_MAP",
+    "CODEFORCES_ORGS",
 )
 
 
@@ -30,6 +32,13 @@ class Channels(enum.IntEnum):
 class Roles(enum.IntEnum):
     ADMIN = 1428051273449738340
     MODERATOR = 1428051042523811983
+
+
+class Campus(enum.StrEnum):
+    MANIPAL = "Manipal"
+    BANGALORE = "Bangalore"
+    JAIPUR = "Jaipur"
+    SIKKIM = "Sikkim"
 
 
 class ButtonEmoji(enum.StrEnum):
@@ -89,4 +98,20 @@ PRESENCE_MAP: dict[discord.ActivityType, list[t.Callable[["HackspaceBot"], str]]
         lambda bot: "the future of technology unfold",
         lambda bot: "open source projects in action",
     ],
+}
+
+CODEFORCES_ORGS: dict[Campus, set[str]] = {
+    Campus.MANIPAL: {
+        "MIT Manipal",  # 2948
+        "MIT, Manipal",  # 2372
+        "Manipal Institute Of Technology, Manipal",  # 10796
+        "Manipal Institute of Technology",  # 4212
+    },
+    Campus.JAIPUR: {
+        "Manipal University (MUJ) Jaipur",  # 28563
+        "Manipal University Jaipur",  # 3235
+    },
+    Campus.SIKKIM: {
+        "Sikkim Manipal Institute of Technology",  # 3199
+    },
 }
