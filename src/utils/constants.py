@@ -12,6 +12,7 @@ if t.TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     "Channels",
+    "Roles",
     "DEVELOPER_IDS",
     "PRESENCE_MAP",
 )
@@ -22,6 +23,11 @@ DEVELOPER_IDS: tuple[int, ...] = (656838010532265994,)
 
 class Channels(enum.IntEnum):
     LOGS = 1434971795739639970
+
+
+class Roles(enum.IntEnum):
+    ADMIN = 1428051273449738340
+    MODERATOR = 1428051042523811983
 
 
 class ButtonEmoji(enum.StrEnum):

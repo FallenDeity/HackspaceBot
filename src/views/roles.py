@@ -71,6 +71,10 @@ class DynamicRoleSelect(discord.ui.DynamicItem[discord.ui.RoleSelect[discord.ui.
 
 
 class ReactionRolesSetup(BaseView):
+    def __init__(self, user: discord.User | discord.Member, timeout: float = 60, *, description: str):
+        super().__init__(user, timeout=timeout)
+        self.description = description
+
     @discord.ui.select(
         cls=discord.ui.RoleSelect,
         placeholder="Select a role",
@@ -97,18 +101,34 @@ class ReactionRolesSetup(BaseView):
     ) -> None:
         await interaction.response.defer()
         selected_roles = self.role_select.values
+
         embed = discord.Embed(
-            title="Reaction Roles Setup",
-            description=f"Selected Roles: {', '.join(role.mention for role in selected_roles)}",
+            title="Reaction Roles",
+            description=self.description,
             color=discord.Color.blurple(),
         )
+        for n, role in enumerate(selected_roles, start=1):
+            embed.add_field(name=f"Role {n}", value=f"{role.mention}", inline=True)
+
+        for _ in range((3 - len(selected_roles) % 3) % 3):
+            embed.add_field(name="\u200b", value="\u200b", inline=True)
+
         embed.timestamp = discord.utils.utcnow()
         embed.set_thumbnail(url=interaction.client.user.display_avatar)  # type: ignore
-        embed.set_footer(text="Please use the select menu below to assign yourself roles.")
-        await interaction.edit_original_response(content="Reaction roles have been set up successfully.", view=None)
+        embed.set_footer(
+            text="Select a role to assign yourself.",
+            icon_url=interaction.guild.icon.url if interaction.guild and interaction.guild.icon else None,
+        )
+
+        role_banner = discord.File("res/roles_banner.jpeg", filename="roles_banner.jpeg")
+        embed.set_image(url="attachment://roles_banner.jpeg")
 
         view = discord.ui.View(timeout=None)
         view.add_item(DynamicRoleSelect(roles=[role.id for role in selected_roles]))
-        await interaction.channel.send(embed=embed, view=view)  # type: ignore
+        await interaction.channel.send(embed=embed, view=view, file=role_banner)  # type: ignore
+
+        original_response = await interaction.original_response()
+        original_response.embeds[0].description = "Reaction roles have been set up successfully."
+        await interaction.edit_original_response(embed=original_response.embeds[0], view=None)
 
         self.stop()
