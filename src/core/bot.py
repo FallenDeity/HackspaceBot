@@ -39,6 +39,20 @@ class HackspaceBot(commands.Bot):
         )
         self.ext_dir = pathlib.Path(ext_dir)
 
+    def __check_on_guild(self, ctx: commands.Context[HackspaceBot]) -> bool:
+        if ctx.guild is None:
+            raise commands.NoPrivateMessage("This command cannot be used in DMs.")
+        return True
+
+    def __check_on_bot_owner(self, ctx: commands.Context[HackspaceBot]) -> bool:
+        return not ctx.author.bot
+
+    def _disable_dm_commands(self) -> None:
+        for command in self.tree.get_commands():
+            command.guild_only = True
+        self.check(self.__check_on_guild)
+        self.check(self.__check_on_bot_owner)
+
     async def _load_extensions(self) -> None:
         if not self.ext_dir.is_dir():
             logger.error(f"Extension directory {self.ext_dir} does not exist.")
@@ -89,6 +103,7 @@ class HackspaceBot(commands.Bot):
         await self._load_extensions()
         await self.load_extension("jishaku")
         self.add_dynamic_items(DynamicRoleSelect)
+        self._disable_dm_commands()
 
     async def close(self) -> None:
         await self.client.close()

@@ -212,6 +212,16 @@ class BotExceptions(enum.Enum):
         messages=[],
         custom_error=True,
     )
+    PrefixExceptions = ExceptionResponse(
+        error=commands.CommandError,
+        messages=[],
+        custom_error=False,
+    )
+    SlashExceptions = ExceptionResponse(
+        error=app_commands.AppCommandError,
+        messages=[],
+        custom_error=False,
+    )
 
     @classmethod
     def get_response(cls, error: Exception) -> ExceptionResponse | str:
