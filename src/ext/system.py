@@ -59,9 +59,17 @@ class Utility(BaseCog):
         embed.set_thumbnail(url=self.bot.user.display_avatar)
         await interaction.edit_original_response(embed=embed)
 
-    @app_commands.command(name="reaction_roles", description="Set up reaction roles in the current channel.")
+    @app_commands.command(name="reaction_roles")
     @app_commands.checks.has_any_role(Roles.ADMIN, Roles.MODERATOR)
     async def reaction_roles(self, interaction: discord.Interaction, description: str) -> None:
+        """
+        Set up reaction roles with a description.
+
+        Parameters
+        ----------
+        description : str
+            The description for the reaction roles embed.
+        """
         await interaction.response.defer(ephemeral=True)
         embed = discord.Embed(
             title="Reaction Roles Setup",

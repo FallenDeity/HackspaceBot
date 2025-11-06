@@ -322,6 +322,10 @@ class Formatter:
 
 
 class CustomHelpCommand(commands.HelpCommand):
+    """
+    A custom help command that supports both prefix and slash commands.
+    """
+
     __original_callback__: _InjectorCallback
     context: Context[HackspaceBot]  # type: ignore
 

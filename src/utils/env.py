@@ -46,6 +46,7 @@ class EnvVar(t.Generic[T]):
 
 class Environment:
     DISCORD_TOKEN: EnvVar[str] = EnvVar(name="DISCORD_TOKEN", required=True, cast=str)
+    GITHUB_TOKEN: EnvVar[str] = EnvVar(name="GITHUB_TOKEN", required=False, cast=str, value="")
 
 
 ENV = Environment()

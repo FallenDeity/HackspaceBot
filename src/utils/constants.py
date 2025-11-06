@@ -13,6 +13,8 @@ if t.TYPE_CHECKING:
 __all__: tuple[str, ...] = (
     "Channels",
     "Roles",
+    "URLs",
+    "ButtonEmoji",
     "DEVELOPER_IDS",
     "PRESENCE_MAP",
 )
@@ -36,6 +38,10 @@ class ButtonEmoji(enum.StrEnum):
     STOP = "<:dustbin:989150297333043220>"
     LAST = "<:DoubleArrowRight:989134892384256011>"
     FIRST = "<:DoubleArrowLeft:989134953142956152>"
+
+
+class URLs(enum.StrEnum):
+    GITHUB_REPO = "https://github.com/FallenDeity/HackspaceBot"
 
 
 def format_uptime(bot: "HackspaceBot") -> str:

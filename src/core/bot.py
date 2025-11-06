@@ -17,6 +17,7 @@ from src.utils.constants import Channels
 from src.utils.embeds import build_error_embed
 from src.utils.env import ENV
 from src.utils.help import CustomHelpCommand
+from src.views.messages import DynamicDeleteButton
 from src.views.roles import DynamicRoleSelect
 
 __all__: tuple[str, ...] = ("HackspaceBot",)
@@ -102,7 +103,7 @@ class HackspaceBot(commands.Bot):
         self.client = aiohttp.ClientSession()
         await self._load_extensions()
         await self.load_extension("jishaku")
-        self.add_dynamic_items(DynamicRoleSelect)
+        self.add_dynamic_items(DynamicRoleSelect, DynamicDeleteButton)
         self._disable_dm_commands()
 
     async def close(self) -> None:
