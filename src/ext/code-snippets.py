@@ -47,11 +47,6 @@ BITBUCKET_RE = re.compile(
     r"/(?P<file_path>[^#>]+)(\?[^#>]+)?(#lines-(?P<start_line>\d+)(:(?P<end_line>\d+))?)"
 )
 
-PYDIS_PASTEBIN_RE = re.compile(
-    r"https://paste\.(?:pythondiscord\.com|pydis\.wtf)/(?P<paste_id>[a-zA-Z0-9]+)"
-    r"#(?P<selections>(?:\d+L\d+-L\d+)(?:,\d+L\d+-L\d+)*)"
-)
-
 PASTEBIN_LINE_SELECTION_RE = re.compile(r"(\d+)L(\d+)-L(\d+)")
 
 
@@ -69,7 +64,6 @@ class CodeSnippets(BaseCog, hidden=True):
             (GITHUB_GIST_RE, self._fetch_github_gist_snippet),
             (GITLAB_RE, self._fetch_gitlab_snippet),
             (BITBUCKET_RE, self._fetch_bitbucket_snippet),
-            (PYDIS_PASTEBIN_RE, self._fetch_pastebin_snippets),
         ]
 
     async def _fetch_response(self, url: str, response_format: str, **kwargs: t.Any) -> t.Any:
@@ -159,29 +153,6 @@ class CodeSnippets(BaseCog, hidden=True):
             "text",
         )
         return self._snippet_to_codeblock(file_contents, file_path, start_line, end_line)
-
-    async def _fetch_pastebin_snippets(self, paste_id: str, selections: str) -> list[str]:
-        """Fetches snippets from paste.pythondiscord.com."""
-        paste_data = await self._fetch_response(f"https://paste.pythondiscord.com/api/v1/paste/{paste_id}", "json")
-
-        snippets: list[str] = []
-        for match in PASTEBIN_LINE_SELECTION_RE.finditer(selections):
-            file_num, start, end = match.groups()
-            file_num = int(file_num) - 1
-
-            file = paste_data["files"][file_num]
-            file_name = file.get("name") or f"file {file_num + 1}"
-            snippet = self._snippet_to_codeblock(
-                file["content"],
-                file_name,
-                start,
-                end,
-                language=file["lexer"],
-            )
-
-            snippets.append(snippet)
-
-        return snippets
 
     def _snippet_to_codeblock(
         self, file_contents: str, file_path: str, start_line: str, end_line: str | None, language: str | None = None

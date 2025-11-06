@@ -83,6 +83,7 @@ class Utility(BaseCog):
         await interaction.edit_original_response(embed=embed, view=view)
 
     @app_commands.command(name="rules", description="Display the server rules.")
+    @app_commands.checks.has_any_role(Roles.ADMIN)
     async def rules(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
 
