@@ -27,7 +27,7 @@ class SourceType(enum.StrEnum):
     cog = enum.auto()
 
 
-class BotSource(BaseCog):
+class BotSource(BaseCog, name="Source"):
     """Displays information about the bot's source code."""
 
     @app_commands.command(name="source")

@@ -86,7 +86,9 @@ class CFUser:
     organization: str | None = None
 
 
-class CodeForcesCog(BaseCog):
+class CodeForcesCog(BaseCog, name="CodeForces"):
+    """Commands for CodeForces integration, including fetching contests and user ratings, and displaying leaderboards."""
+
     _lock: asyncio.Lock = asyncio.Lock()
 
     _upcoming_contests: list[CFContest] = []
