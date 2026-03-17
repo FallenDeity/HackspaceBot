@@ -28,6 +28,8 @@ class ExceptionResponse:
 
     @property
     def message(self) -> str:
+        if not self.messages:
+            return f"An error of type {self.error} occurred but no message was provided."
         return random.choice(self.messages)
 
     def __str__(self) -> str:
