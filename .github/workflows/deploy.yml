@@ -33,13 +33,13 @@ jobs:
 
       - name: Write env
         run: |
-          echo "DISCORD_BOT_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
+          echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
           echo "JISHAKU_HIDE=${{ secrets.JISHAKU_HIDE }}" >> .env
 
       - name: Deploy
         run: |
           pm2 delete hackspace-bot 2>/dev/null || true
-          pm2 start "uv run __main__.py" --name hackspace-bot --log /tmp/runners/hackspace-bot.log --time
+          pm2 start "uv run __main__.py" --name hackspace-bot --log /tmp/runners/hackspace-bot.log
           pm2 save
 
       - name: Health Check
