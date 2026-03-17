@@ -9,7 +9,7 @@ on:
       force_deploy:
         description: 'Force deploy without waiting for formatter/linter workflow result'
         required: true
-        default: false
+        default: true
         type: boolean
 
 jobs:
@@ -19,15 +19,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: "Set up Python"
-        uses: actions/setup-python@v6
-        with:
-          python-version-file: "pyproject.toml"
-
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
           version: 'latest'
+
+      - name: Set up Python
+        run: uv python install
 
       - name: Install Dependencies
         run: |
@@ -46,6 +44,7 @@ jobs:
 
       - name: Health Check
         run: |
+          sleep 5
           for i in {1..5}; do
             if pm2 logs hackspace-bot --lines 100 --nostream | grep -q "Ready!"; then
               echo "Bot is ready!"
@@ -57,4 +56,3 @@ jobs:
           echo "Bot failed to become ready after 5 attempts. Logs:"
           pm2 logs hackspace-bot --lines 100 --nostream
           exit 1
-
