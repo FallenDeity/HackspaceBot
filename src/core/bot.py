@@ -97,7 +97,7 @@ class HackspaceBot(commands.Bot):
         logger.error(f"An error occurred in {event_method}.\n{traceback.format_exc()}")
 
     async def on_ready(self) -> None:
-        logger.info(f"Logged in as {self.user} ({self.user.id})")
+        logger.info(f"Logged in as {self.user} ({self.user.id}). Ready!")
 
     async def setup_hook(self) -> None:
         self.client = aiohttp.ClientSession()

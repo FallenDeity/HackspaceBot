@@ -9,18 +9,22 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
-      - name: Install Python
-        uses: actions/setup-python@v4
+      - name: Set up Python
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version-file: "pyproject.toml"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: 'latest'
 
       - name: Install Dependencies
         run: |
-          python -m pip install -U pip
-          pip install uv
-          uv sync
+          uv sync --locked --all-groups
+
       - name: Format with isort and black
         run: |
           uv run isort ./

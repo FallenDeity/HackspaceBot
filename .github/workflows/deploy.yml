@@ -1,0 +1,60 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["Code formatter and linter"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deploy without waiting for formatter/linter workflow result'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') || (github.event_name == 'workflow_dispatch' && inputs.force_deploy) }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: 'latest'
+
+      - name: Install Dependencies
+        run: |
+          uv sync --locked --all-groups
+
+      - name: Write env
+        run: |
+          echo "DISCORD_BOT_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
+          echo "JISHAKU_HIDE=${{ secrets.JISHAKU_HIDE }}" >> .env
+
+      - name: Deploy
+        run: |
+          pm2 delete hackspace-bot 2>/dev/null || true
+          pm2 start "uv run __main__.py" --name hackspace-bot --log /tmp/runners/hackspace-bot.log --time
+          pm2 save
+
+      - name: Health Check
+        run: |
+          for i in {1..5}; do
+            if pm2 logs hackspace-bot --lines 100 --nostream | grep -q "Ready!"; then
+              echo "Bot is ready!"
+              exit 0
+            fi
+            echo "Bot not ready yet. Attempt $i/5"
+            sleep 5
+          done
+          echo "Bot failed to become ready after 5 attempts. Logs:"
+          pm2 logs hackspace-bot --lines 100 --nostream
+          exit 1
+
