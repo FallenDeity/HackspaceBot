@@ -51,11 +51,7 @@ PASTEBIN_LINE_SELECTION_RE = re.compile(r"(\d+)L(\d+)-L(\d+)")
 
 
 class CodeSnippets(BaseCog, hidden=True):
-    """
-    Cog that parses and sends code snippets to Discord.
-
-    Matches each message against a regex and prints the contents of all matched snippets.
-    """
+    """Displays code snippets from GitHub, GitLab, BitBucket, and Pastebin links."""
 
     def __init__(self, bot: HackspaceBot) -> None:
         super().__init__(bot=bot)

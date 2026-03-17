@@ -7,7 +7,7 @@ import typing
 import discord
 from discord.ui.select import BaseSelect
 
-from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
+from src.core.errors import BotExceptions
 from src.utils.embeds import build_view_error_embed
 
 if typing.TYPE_CHECKING:
@@ -64,15 +64,12 @@ class BaseView(discord.ui.View):
         self, interaction: discord.Interaction[HackspaceBot], error: Exception, item: discord.ui.Item[BaseView]
     ) -> None:
         error_response = BotExceptions.get_response(error)
-
-        if isinstance(error_response, ExceptionResponse):
-            if error_response.error is UnknownError:
-                embeds, description, tb = build_view_error_embed(interaction, error, item)
-                logger.error(f"{description}\n{tb}")
-                await interaction.client.sys_log(
-                    embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
-                )
-            error_response = str(error_response)
+        embeds, description, tb = build_view_error_embed(interaction, error, item)
+        logger.error(f"{description}\n{tb}")
+        await interaction.client.sys_log(
+            embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
+        )
+        error_response = str(error_response)
 
         # disable all components
         self._disable_all()
@@ -100,14 +97,12 @@ class BaseModal(discord.ui.Modal):
     async def on_error(self, interaction: discord.Interaction[HackspaceBot], error: Exception) -> None:  # type: ignore[override]
         error_response = BotExceptions.get_response(error)
 
-        if isinstance(error_response, ExceptionResponse):
-            if error_response.error is UnknownError:
-                embeds, description, tb = build_view_error_embed(interaction, error, self)
-                logger.error(f"{description}\n{tb}")
-                await interaction.client.sys_log(
-                    embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
-                )
-            error_response = str(error_response)
+        embeds, description, tb = build_view_error_embed(interaction, error, self)
+        logger.error(f"{description}\n{tb}")
+        await interaction.client.sys_log(
+            embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
+        )
+        error_response = str(error_response)
 
         try:
             await interaction.response.send_message(error_response, ephemeral=True)

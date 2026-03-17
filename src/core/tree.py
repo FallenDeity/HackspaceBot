@@ -12,7 +12,7 @@ from discord.ext import commands
 from discord.interactions import Interaction
 
 from src.core.checks import get_cooldown_bucket
-from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
+from src.core.errors import BotExceptions
 from src.utils.embeds import build_error_embed
 
 if t.TYPE_CHECKING:
@@ -104,15 +104,12 @@ class SlashCommandTree(app_commands.CommandTree["HackspaceBot"]):
                     bucket.reset()
 
         error_response = BotExceptions.get_response(error)
-
-        if isinstance(error_response, ExceptionResponse):
-            if error_response.error is UnknownError:
-                embeds, description, tb = build_error_embed(interaction, error)
-                logger.error(f"{description}\n{tb}")
-                await interaction.client.sys_log(
-                    embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
-                )
-            error_response = str(error_response)
+        embeds, description, tb = build_error_embed(interaction, error)
+        logger.error(f"{description}\n{tb}")
+        await interaction.client.sys_log(
+            embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
+        )
+        error_response = str(error_response)
 
         try:
             await interaction.response.send_message(error_response)

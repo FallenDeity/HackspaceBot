@@ -11,7 +11,7 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from src.core.errors import BotExceptions, ExceptionResponse, UnknownError
+from src.core.errors import BotExceptions
 from src.core.tree import SlashCommandTree
 from src.utils.constants import Channels
 from src.utils.embeds import build_error_embed
@@ -75,17 +75,10 @@ class HackspaceBot(commands.Bot):
             exception = exception.original
 
         error_response = BotExceptions.get_response(exception)
-
-        if isinstance(error_response, ExceptionResponse):
-            if error_response.error is UnknownError:
-                embeds, description, tb = build_error_embed(context, exception)
-                logger.error(f"{description}\n{tb}")
-                await self.sys_log(
-                    embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt")
-                )
-            error_response = str(error_response)
-
-        await context.reply(error_response)
+        embeds, description, tb = build_error_embed(context, exception)
+        logger.error(f"{description}\n{tb}")
+        await self.sys_log(embeds=embeds, file=discord.File(fp=io.BytesIO(tb.encode()), filename="traceback.txt"))
+        await context.reply(str(error_response))
 
     async def sys_log(self, *args: t.Any, **kwargs: t.Any) -> None:
         channel = t.cast(

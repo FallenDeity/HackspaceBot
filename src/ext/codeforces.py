@@ -87,7 +87,7 @@ class CFUser:
 
 
 class CodeForcesCog(BaseCog, name="CodeForces"):
-    """Commands for CodeForces integration, including fetching contests and user ratings, and displaying leaderboards."""
+    """Commands related to CodeForces contests and users."""
 
     _lock: asyncio.Lock = asyncio.Lock()
 
