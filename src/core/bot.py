@@ -13,9 +13,11 @@ from discord.ext import commands
 
 from src.core.errors import BotExceptions
 from src.core.tree import SlashCommandTree
+from src.database import Database
 from src.utils.constants import Channels
 from src.utils.embeds import build_error_embed
 from src.utils.env import ENV
+from src.utils.features import FeatureSwitchboard
 from src.utils.help import CustomHelpCommand
 from src.views.messages import DynamicDeleteButton
 from src.views.roles import DynamicRoleSelect
@@ -27,6 +29,8 @@ logger = logging.getLogger(__name__)
 
 class HackspaceBot(commands.Bot):
     client: aiohttp.ClientSession
+    db: Database
+    features: FeatureSwitchboard
     _uptime: datetime.datetime = datetime.datetime.now(datetime.timezone.utc)
 
     def __init__(self, prefix: str, ext_dir: str | pathlib.Path, *args: t.Any, **kwargs: t.Any) -> None:
@@ -39,6 +43,8 @@ class HackspaceBot(commands.Bot):
             tree_cls=SlashCommandTree,
         )
         self.ext_dir = pathlib.Path(ext_dir)
+        self.db = Database(db_path=pathlib.Path(ENV.DB_DIR) / ENV.DB_NAME)
+        self.features = FeatureSwitchboard(self.db)
 
     def __check_on_guild(self, ctx: commands.Context[HackspaceBot]) -> bool:
         if ctx.guild is None:
@@ -94,12 +100,14 @@ class HackspaceBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         self.client = aiohttp.ClientSession()
+        await self.db.connect()
         await self._load_extensions()
         await self.load_extension("jishaku")
         self.add_dynamic_items(DynamicRoleSelect, DynamicDeleteButton)
         self._disable_dm_commands()
 
     async def close(self) -> None:
+        await self.db.close()
         await self.client.close()
         await super().close()
 

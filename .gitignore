@@ -87,3 +87,6 @@ cython_debug/
 logs/
 .ruff_cache/
 poetry.lock
+*.db
+*.db-shm
+*.db-wal

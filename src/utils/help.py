@@ -450,7 +450,7 @@ class CustomHelpCommand(commands.HelpCommand):
             )
         ]
         for cog, cmds in mapping.items():
-            if not cmds:
+            if not cmds or (cog and getattr(cog, "hidden", False)):
                 continue
             filtered_cmds = await self.filter_commands(self.flatten_commands(cmds), sort=True)
 
@@ -484,6 +484,9 @@ class CustomHelpCommand(commands.HelpCommand):
         await paginator.start_paginator(self.context)
 
     async def send_command_help(self, command: Command[Any, ..., Any] | app_commands.Command[Any, ..., Any], /) -> None:
+        if getattr(command, "hidden", False):
+            await self.send_error_message("No help found for that command.")
+            return
         embed = await Formatter(self).format_command(command)
         await self.context.send(embed=embed)
 
@@ -519,7 +522,7 @@ class CustomHelpCommand(commands.HelpCommand):
             return await self.send_bot_help(mapping)
 
         cog = bot.get_cog(command)
-        if cog:
+        if cog and not getattr(cog, "hidden", False):
             return await self.send_cog_help(cog)
 
         maybe_coro = discord.utils.maybe_coroutine
@@ -553,7 +556,7 @@ class CustomHelpCommand(commands.HelpCommand):
                     return await self.send_error_message(string)
                 cmd = found  # type: ignore
 
-        if isinstance(cmd, commands.Group | app_commands.Group):
+        if isinstance(cmd, commands.Group | app_commands.Group) and not getattr(cmd, "hidden", False):  # type: ignore
             return await self.send_group_help(cmd)  # type: ignore
         return await self.send_command_help(cmd)  # type: ignore
 

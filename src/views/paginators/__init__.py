@@ -51,16 +51,25 @@ class BasePaginator(Generic[T], BaseView):
             self.message = await ctx_or_inter.send(*args, **kwargs)
             return
         if self.message is None:
-            await ctx_or_inter.response.send_message(*args, **kwargs)
-            self.message = await ctx_or_inter.original_response()
-            return
+            try:
+                await ctx_or_inter.response.send_message(*args, **kwargs)
+                self.message = await ctx_or_inter.original_response()
+                return
+            except discord.InteractionResponded:
+                self.message = await ctx_or_inter.edit_original_response(
+                    *args, attachments=kwargs.pop("files", []), **kwargs
+                )
+                return
         self.message = await ctx_or_inter.edit_original_response(*args, **kwargs)
 
     async def send_page(self, ctx_or_inter: commands.Context[HackspaceBot] | discord.Interaction, page: T) -> None:
         if isinstance(page, discord.Embed):  # Embed
             # Check if the embed has an associated attachment and send it along with the embed
             attachment = None
-            if (page.image.url or "").startswith("attachment://") and len(self.attachments) > self.current_page:
+            image_url = page.image.url or ""
+            thumbnail_url = page.thumbnail.url or ""
+            has_attachment_media = image_url.startswith("attachment://") or thumbnail_url.startswith("attachment://")
+            if has_attachment_media and len(self.attachments) > self.current_page:
                 attachment = discord.File(self.attachments[self.current_page].fp.name)  # type: ignore
             attachments = [attachment] if attachment else []
             if self.message is None:

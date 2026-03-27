@@ -8,6 +8,7 @@ from discord.ext import tasks
 
 from src.utils.ansi import AnsiBuilder, Colors, Styles
 from src.utils.constants import PRESENCE_MAP, Roles
+from src.utils.features import FeatureKey
 from src.views.roles import ReactionRolesSetup
 
 from . import BaseCog
@@ -113,6 +114,26 @@ class Utility(BaseCog):
         await channel.send(embed=embed, file=rules_banner)  # type: ignore
 
         await interaction.edit_original_response(content="Server rules have been posted successfully.", view=None)
+
+    @app_commands.command(name="feature_toggle", description="Enable or disable a feature flag.")
+    @app_commands.checks.has_any_role(Roles.ADMIN)
+    async def feature_toggle(self, interaction: discord.Interaction, feature: FeatureKey, enabled: bool) -> None:
+        await interaction.response.defer(ephemeral=True)
+        await self.bot.features.set_enabled(feature, enabled)
+        state = "enabled" if enabled else "disabled"
+        await interaction.edit_original_response(content=f"Feature `{feature.value}` is now {state}.")
+
+    @app_commands.command(name="feature_flags", description="List feature flag states.")
+    @app_commands.checks.has_any_role(Roles.ADMIN)
+    async def feature_flags(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(ephemeral=True)
+        flags = await self.bot.features.all()
+        if not flags:
+            await interaction.edit_original_response(content="No feature flags found.")
+            return
+
+        lines = [f"- `{feature.value}`: {'ON' if enabled else 'OFF'}" for feature, enabled in flags.items()]
+        await interaction.edit_original_response(content="\n".join(lines))
 
 
 async def setup(bot: "HackspaceBot") -> None:

@@ -14,6 +14,9 @@ __all__: tuple[str, ...] = (
     "Channels",
     "Roles",
     "URLs",
+    "Paths",
+    "ConfigKey",
+    "DEFAULT_CONFIG_VALUES",
     "Campus",
     "ButtonEmoji",
     "DEVELOPER_IDS",
@@ -27,11 +30,13 @@ DEVELOPER_IDS: tuple[int, ...] = (656838010532265994,)
 
 class Channels(enum.IntEnum):
     LOGS = 1434971795739639970
+    CONTESTS = 1487130119175667872
 
 
 class Roles(enum.IntEnum):
     ADMIN = 1428051273449738340
     MODERATOR = 1428051042523811983
+    CONTESTS = 1436038553258954884
 
 
 class Campus(enum.StrEnum):
@@ -51,6 +56,20 @@ class ButtonEmoji(enum.StrEnum):
 
 class URLs(enum.StrEnum):
     GITHUB_REPO = "https://github.com/FallenDeity/HackspaceBot"
+
+
+class Paths(enum.StrEnum):
+    MIGRATIONS = "src/bin/migrations/sql"
+    RESOURCES = "res"
+
+
+class ConfigKey(enum.StrEnum):
+    CONTEST_NOTIFICATION_MILESTONES = "contest_notification_milestones"
+
+
+DEFAULT_CONFIG_VALUES: dict[ConfigKey, t.Any] = {
+    ConfigKey.CONTEST_NOTIFICATION_MILESTONES: [21600, 1800],
+}
 
 
 def format_uptime(bot: "HackspaceBot") -> str:
