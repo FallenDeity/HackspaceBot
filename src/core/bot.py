@@ -43,7 +43,8 @@ class HackspaceBot(commands.Bot):
             tree_cls=SlashCommandTree,
         )
         self.ext_dir = pathlib.Path(ext_dir)
-        self.db = Database(db_path=pathlib.Path(ENV.DB_DIR) / ENV.DB_NAME)
+        db_dir = pathlib.Path(ENV.DB_DIR).expanduser()
+        self.db = Database(db_path=db_dir / ENV.DB_NAME)
         self.features = FeatureSwitchboard(self.db)
 
     def __check_on_guild(self, ctx: commands.Context[HackspaceBot]) -> bool:
