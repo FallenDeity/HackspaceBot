@@ -38,23 +38,30 @@ jobs:
           echo "DB_DIR=${{ secrets.DB_DIR }}" >> .env
           echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
 
+      - name: Ensure pm2 daemon is running
+        run: |
+          pm2 ping || pm2 resurrect || true
+
       - name: Deploy
         run: |
-          pm2 delete hackspace-bot 2>/dev/null || true
-          PYTHONOPTIMIZE=1 pm2 start "uv run __main__.py" --name hackspace-bot --log /tmp/runners/hackspace-bot.log
+          if pm2 describe hackspace-bot >/dev/null 2>&1; then
+            PYTHONOPTIMIZE=1 pm2 restart hackspace-bot --update-env
+          else
+            PYTHONOPTIMIZE=1 pm2 start "uv run __main__.py" --name hackspace-bot --log /tmp/runners/hackspace-bot.log
+          fi
           pm2 save
 
       - name: Health Check
         run: |
           sleep 5
-          for i in {1..5}; do
+          for i in {1..10}; do
             if pm2 logs hackspace-bot --lines 100 --nostream | grep -q "Ready!"; then
               echo "Bot is ready!"
               exit 0
             fi
-            echo "Bot not ready yet. Attempt $i/5"
+            echo "Bot not ready yet. Attempt $i/10. Retrying in 5 seconds..."
             sleep 5
           done
-          echo "Bot failed to become ready after 5 attempts. Logs:"
+          echo "Bot failed to become ready after 10 attempts. Logs:"
           pm2 logs hackspace-bot --lines 100 --nostream
           exit 1
